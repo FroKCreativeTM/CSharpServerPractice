@@ -5,39 +5,38 @@ namespace ServerCore
 {
     public class Test
     {
-        // volatile : 휘발성 데이터
-        // 언제 바뀔지 모르니 어셈블리 단계에서 최적화를 하지 않는다.
-        // 캐시를 무시하고 최신 값을 가져와라.
-        // 보통 lock을 사용한다.
-        volatile static bool _stop = false;
-
-        static void ThreadMain()
-        {
-            Console.WriteLine("쓰레드 시작!"); ;
-
-            while(_stop == false)
-            {
-                // release에선 코드 최적화 때문에 일어나면 안 되는 일이 일어나곤 한다.
-            }
-            Console.WriteLine("쓰레드 종료");
-        }
-
-
         public static void Main(string[] args)
         {
-            Task t = new Task(ThreadMain);
-            t.Start();
+            int[,] arr = new int[10000, 10000];
 
-            Thread.Sleep(1000);
+            {
+                long now = DateTime.Now.Ticks;
+                for (int y = 0; y < 10000; y++)
+                {
+                    for (int x = 0; x < 10000; x++)
+                    {
+                        arr[y, x] = 1;
+                    }
+                }
+                long end = DateTime.Now.Ticks;
 
-            _stop = true;
+                Console.WriteLine($"(y, x) 순서 걸린 시간 {end - now}");
+            }
 
-            Console.WriteLine("Stop 호출");
-            Console.WriteLine("종료 대기중");
+            // 공간적 지역성을 고려하지 않은 코드이다.
+            {
+                long now = DateTime.Now.Ticks;
+                for (int y = 0; y < 10000; y++)
+                {
+                    for (int x = 0; x < 10000; x++)
+                    {
+                        arr[x, y] = 1;
+                    }
+                }
+                long end = DateTime.Now.Ticks;
 
-            t.Wait();
-
-            Console.WriteLine("종료 성공");
+                Console.WriteLine($"(x, y) 순서 걸린 시간 {end - now}");
+            }
         }
     }
 } 
