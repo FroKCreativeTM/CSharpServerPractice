@@ -5,38 +5,31 @@ namespace ServerCore
 {
     public class Test
     {
+        int _answer;
+        bool _complete;
+
+        void A()
+        {
+            _answer = 123;
+            Thread.MemoryBarrier();
+            _complete = true;
+            Thread.MemoryBarrier();
+        }
+
+        void B()
+        {
+            Thread.MemoryBarrier(); // 얘는 store -> store -> read이기 때문에
+                                    // 명시를 해주는 것이다.(가시성을 위해서)
+            if(_complete)
+            {
+                Thread.MemoryBarrier();
+                Console.WriteLine(_answer);
+            }
+        }
+
         public static void Main(string[] args)
         {
-            int[,] arr = new int[10000, 10000];
 
-            {
-                long now = DateTime.Now.Ticks;
-                for (int y = 0; y < 10000; y++)
-                {
-                    for (int x = 0; x < 10000; x++)
-                    {
-                        arr[y, x] = 1;
-                    }
-                }
-                long end = DateTime.Now.Ticks;
-
-                Console.WriteLine($"(y, x) 순서 걸린 시간 {end - now}");
-            }
-
-            // 공간적 지역성을 고려하지 않은 코드이다.
-            {
-                long now = DateTime.Now.Ticks;
-                for (int y = 0; y < 10000; y++)
-                {
-                    for (int x = 0; x < 10000; x++)
-                    {
-                        arr[x, y] = 1;
-                    }
-                }
-                long end = DateTime.Now.Ticks;
-
-                Console.WriteLine($"(x, y) 순서 걸린 시간 {end - now}");
-            }
         }
     }
 } 
