@@ -5,31 +5,44 @@ namespace ServerCore
 {
     public class Test
     {
-        int _answer;
-        bool _complete;
+        static volatile int num = 0;
 
-        void A()
+        static void A()
         {
-            _answer = 123;
-            Thread.MemoryBarrier();
-            _complete = true;
-            Thread.MemoryBarrier();
+            // atomic = 원자성
+            // 이러한 코드는 원자성을 해친다.
+            for (int i = 0; i < 100000; i++)
+            {
+                num++;
+            }
         }
 
-        void B()
+        static void B()
         {
-            Thread.MemoryBarrier(); // 얘는 store -> store -> read이기 때문에
-                                    // 명시를 해주는 것이다.(가시성을 위해서)
-            if(_complete)
+            for (int i = 0; i < 100000; i++)
             {
-                Thread.MemoryBarrier();
-                Console.WriteLine(_answer);
+                num--;
             }
         }
 
         public static void Main(string[] args)
         {
+            num++;
 
+            // 어셈블리로 따지면 num++은
+            // int temp = num;
+            // temp++;
+            // num = temp;와 같은 것이다
+
+            Task t1 = new Task(A);
+            Task t2 = new Task(B);
+
+            t1.Start();
+            t2.Start();
+
+            Task.WaitAll(t1, t2);
+
+            Console.WriteLine(num);
         }
     }
 } 
