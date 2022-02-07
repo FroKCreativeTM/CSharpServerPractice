@@ -5,15 +5,16 @@ namespace ServerCore
 {
     public class Test
     {
-        static volatile int num = 0;
+        static int num = 0;
 
         static void A()
         {
-            // atomic = 원자성
-            // 이러한 코드는 원자성을 해친다.
             for (int i = 0; i < 100000; i++)
             {
-                num++;
+                // num++이 보장된다.
+                // Interlocked
+                // 성능은 좋지만 정수만 사용할 수 있다는 단점이 존재한다.
+                Interlocked.Increment(ref num);
             }
         }
 
@@ -21,14 +22,13 @@ namespace ServerCore
         {
             for (int i = 0; i < 100000; i++)
             {
-                num--;
+                // num--이 보장된다.
+                Interlocked.Decrement(ref num);
             }
         }
 
         public static void Main(string[] args)
         {
-            num++;
-
             // 어셈블리로 따지면 num++은
             // int temp = num;
             // temp++;
