@@ -6,15 +6,24 @@ namespace ServerCore
     public class Test
     {
         static int num = 0;
+        static object _obj = new object();
 
         static void A()
         {
             for (int i = 0; i < 100000; i++)
             {
-                // num++이 보장된다.
-                // Interlocked
-                // 성능은 좋지만 정수만 사용할 수 있다는 단점이 존재한다.
-                Interlocked.Increment(ref num);
+                try
+                {
+                    Monitor.Enter(_obj);
+
+                    // 코드 블럭
+                    num++;
+                }
+                finally
+                {
+                    Monitor.Exit(_obj);
+                }
+
             }
         }
 
@@ -22,8 +31,12 @@ namespace ServerCore
         {
             for (int i = 0; i < 100000; i++)
             {
-                // num--이 보장된다.
-                Interlocked.Decrement(ref num);
+                Monitor.Enter(_obj);
+
+                // 코드 블럭
+                num--;
+
+                Monitor.Exit(_obj);
             }
         }
 
