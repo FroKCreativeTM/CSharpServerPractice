@@ -1,61 +1,56 @@
 ﻿using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ServerCore
 {
+
     public class Test
     {
-        static int num = 0;
-        static object _obj = new object();
+        static Listener _listener = new Listener();
 
-        static void A()
+        static void OnAcceptHandler(Socket clientSocket)
         {
-            for (int i = 0; i < 100000; i++)
+            try
             {
-                try
-                {
-                    Monitor.Enter(_obj);
+                // 받고 
+                byte[] recvBuff = new byte[1024];
+                int recvBytes = clientSocket.Receive(recvBuff);
+                string recvData = Encoding.UTF8.GetString(recvBuff, 0, recvBytes);
+                Console.WriteLine($"[From Client] {recvData}");
 
-                    // 코드 블럭
-                    num++;
-                }
-                finally
-                {
-                    Monitor.Exit(_obj);
-                }
+                // 전송
+                byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server !");
+                clientSocket.Send(sendBuff);
 
+                // 끝
+                clientSocket.Shutdown(SocketShutdown.Both);
+                clientSocket.Close();
             }
-        }
-
-        static void B()
-        {
-            for (int i = 0; i < 100000; i++)
+            catch (Exception e)
             {
-                Monitor.Enter(_obj);
-
-                // 코드 블럭
-                num--;
-
-                Monitor.Exit(_obj);
+                Console.WriteLine(e.Message);
+                throw;
             }
         }
 
         public static void Main(string[] args)
         {
-            // 어셈블리로 따지면 num++은
-            // int temp = num;
-            // temp++;
-            // num = temp;와 같은 것이다
+            // DNS
+            string host = Dns.GetHostName();
+            IPHostEntry ipHost= Dns.GetHostEntry(host);
+            IPAddress ipAddr = ipHost.AddressList[0];
+            IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
 
-            Task t1 = new Task(A);
-            Task t2 = new Task(B);
+            _listener.Init(endPoint, OnAcceptHandler);
+            Console.WriteLine("Listening...");
 
-            t1.Start();
-            t2.Start();
-
-            Task.WaitAll(t1, t2);
-
-            Console.WriteLine(num);
+            while (true)
+            {
+            }
         }
     }
 } 
