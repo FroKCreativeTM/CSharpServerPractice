@@ -72,13 +72,6 @@ namespace ServerCore
         // 얘는 언제할 지 모름
         void RegisterSend()
         {
-            // 다른 스레드가 껴들면 기다리게 
-            _pending = true;
-            // byte[] buff = _sendQueue.Dequeue();
-            // _sendArgs.SetBuffer(buff, 0, buff.Length);
-
-
-            _pendingList.Clear();
             // 버퍼 리스트를 한 번에 보내준다.
             while (_sendQueue.Count > 0)
             {

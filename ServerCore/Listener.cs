@@ -56,11 +56,5 @@ namespace ServerCore
 
             RegisterAccept(args);
         }
-
-        // public Socket Accept()
-        // {
-        //     // 블로킹 방식 함수
-        //     return _listnerSocket.Accept();
-        // }
     }
 }
