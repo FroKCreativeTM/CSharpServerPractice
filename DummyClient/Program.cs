@@ -4,10 +4,42 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ServerCore;
 
 namespace DummyClient
 {
-    public class Test
+    class GameSession : Session
+    {
+        public override void OnConnected(EndPoint endPoint)
+        {
+            Console.WriteLine($"OnConnected {endPoint}");
+
+            for (int i = 0; i < 5; i++)
+            {
+                // 보낸다.
+                byte[] sendBuff = Encoding.UTF8.GetBytes($"Hello World { i + 1}");
+                Send(sendBuff);
+            }
+        }
+
+        public override void OnDisconnected(EndPoint endPoint)
+        {
+            Console.WriteLine($"OnDisconnected {endPoint}");
+        }
+
+        public override void OnReceive(ArraySegment<byte> buffer)
+        {
+            string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
+            Console.WriteLine($"From [Server] {recvData}");
+        }
+
+        public override void OnSend(int nBytes)
+        {
+            Console.WriteLine($"Transffered bytes {nBytes}");
+        }
+    }
+
+    public class Program
     {
 
         public static void Main(string[] args)
@@ -17,33 +49,14 @@ namespace DummyClient
             IPHostEntry ipHost = Dns.GetHostEntry(host);
             IPAddress ipAddr = ipHost.AddressList[0];
             IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
-            
+
+            Connector connector = new Connector();
+            connector.Connect(endPoint, () => { return new GameSession(); });
+
             while(true)
             {
-                // 설정
-                Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
                 try
                 {
-                    // 연결한다.
-                    socket.Connect(endPoint);
-                    Console.WriteLine($"Connected To {socket.RemoteEndPoint.ToString()}");
-
-                    for (int i = 0; i < 5; i++)
-                    {
-                        // 보낸다.
-                        byte[] sendBuff = Encoding.UTF8.GetBytes($"Hello World { i + 1}");
-                        int sendBytes = socket.Send(sendBuff);
-                    }
-
-                    // 받는다.
-                    byte[] recvBuff = new byte[1024];
-                    int recvBytes = socket.Receive(recvBuff);
-                    string recvStr = Encoding.UTF8.GetString(recvBuff, 0, recvBytes);
-                    Console.WriteLine($"From Server {recvStr}");
-
-                    // 나간다 
-                    socket.Shutdown(SocketShutdown.Both);
                 }
                 catch (Exception e)
                 {
