@@ -37,11 +37,13 @@ namespace ServerCore
 
             bool pending = _listnerSocket.AcceptAsync(args);
 
+            // 클라이언트 요청이 와서 바로 처리할 수 있는 경우
             if (pending == false)
                 OnAcceptComleted(null, args);
 
         }
 
+        // MULTY-THREAD!!! RED ZONE
         void OnAcceptComleted(object sender, SocketAsyncEventArgs args)
         {
             if (args.SocketError == SocketError.Success)
