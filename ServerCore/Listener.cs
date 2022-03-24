@@ -20,7 +20,7 @@ namespace ServerCore
 
             _listnerSocket.Bind(endPoint);
 
-            _listnerSocket.Listen(1000);
+            _listnerSocket.Listen(10);
 
             SocketAsyncEventArgs args = new SocketAsyncEventArgs();
             args.Completed += new EventHandler<SocketAsyncEventArgs>(OnAcceptComleted); // 델리게이트

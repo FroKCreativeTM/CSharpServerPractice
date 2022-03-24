@@ -8,6 +8,15 @@ using ServerCore;
 
 namespace Server
 {
+    class Warrior
+    {
+        public int hp;
+        public int attack;
+        public string name = "";
+        public List<int> skills = new List<int>();
+    }
+
+
     // 컨텐츠 단에서는 이렇게 
     // 서버 엔진의 클래스를 오버라이딩한다.
     class GameSession : Session
@@ -16,10 +25,19 @@ namespace Server
         {
             Console.WriteLine($"OnConnected {endPoint}");
 
-            byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server");
-            this.Send(sendBuff);
+            Warrior warrior = new Warrior() { hp = 100, attack = 10 };
+
+            ArraySegment<byte> openSegment = SendBufferHelper.Open(4096);
+            // byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server");
+            byte[] buffer= BitConverter.GetBytes(warrior.hp);
+            byte[] buffer2 = BitConverter.GetBytes(warrior.attack);
+            Array.Copy(buffer, 0, openSegment.Array, openSegment.Offset, buffer.Length);
+            Array.Copy(buffer2, 0, openSegment.Array, openSegment.Offset + buffer.Length, buffer2.Length);
+            ArraySegment<byte> sendBuff = SendBufferHelper.Close(buffer.Length + buffer2.Length); 
+
+            Send(sendBuff);
             Thread.Sleep(1000);
-            this.Disconnect();
+            Disconnect();
         }
 
         public override void OnDisconnected(EndPoint endPoint)
@@ -27,10 +45,11 @@ namespace Server
             Console.WriteLine($"OnDisconnected {endPoint}");
         }
 
-        public override void OnReceive(ArraySegment<byte> buffer)
+        public override int OnReceive(ArraySegment<byte> buffer)
         {
             string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
             Console.WriteLine($"From [Client] {recvData}");
+            return buffer.Count;
         }
 
         public override void OnSend(int nBytes)
