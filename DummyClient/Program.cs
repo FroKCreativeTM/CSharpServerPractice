@@ -8,16 +8,29 @@ using ServerCore;
 
 namespace DummyClient
 {
+    class Packet
+    {
+        // 보통 대부분 패킷 클래스는 
+        // 패킷 사이즈와 id를 넣어준다.
+        public ushort size;
+        public ushort packetid;
+    }
     class GameSession : Session
     {
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine($"OnConnected {endPoint}");
+            Packet packet = new Packet() { size = 4, packetid = 7 };
 
             for (int i = 0; i < 5; i++)
             {
-                // 보낸다.
-                byte[] sendBuff = Encoding.UTF8.GetBytes($"Hello World { i + 1}");
+                ArraySegment<byte> openSegment = SendBufferHelper.Open(4096);
+                byte[] buffer = BitConverter.GetBytes(packet.size);
+                byte[] buffer2 = BitConverter.GetBytes(packet.packetid);
+                Array.Copy(buffer, 0, openSegment.Array, openSegment.Offset, buffer.Length);
+                Array.Copy(buffer2, 0, openSegment.Array, openSegment.Offset + buffer.Length, buffer2.Length);
+                ArraySegment<byte> sendBuff = SendBufferHelper.Close(packet.size);
+
                 Send(sendBuff);
             }
         }
