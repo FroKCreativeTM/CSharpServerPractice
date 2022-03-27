@@ -9,25 +9,27 @@ using ServerCore;
 namespace Server
 {
 
-    public class Program
-    {
-        static Listener _listener = new Listener();
+	public class Program
+	{
+		static Listener _listener = new Listener();
 
-        public static void Main(string[] args)
-        {
-            // DNS
-            string host = Dns.GetHostName();
-            IPHostEntry ipHost = Dns.GetHostEntry(host);
-            IPAddress ipAddr = ipHost.AddressList[0];
-            IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
+		static void Main(string[] args)
+		{
+			PacketManager.Instance.Register();
 
-            _listener.Init(endPoint, () => { return new ClientSession(); });
-            Console.WriteLine("Listening...");
+			// DNS (Domain Name System)
+			string host = Dns.GetHostName();
+			IPHostEntry ipHost = Dns.GetHostEntry(host);
+			IPAddress ipAddr = ipHost.AddressList[0];
+			IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
 
-            while (true)
-            {
-                ;
-            }
-        }
-    }
+			_listener.Init(endPoint, () => { return new ClientSession(); });
+			Console.WriteLine("Listening...");
+
+			while (true)
+			{
+				;
+			}
+		}
+	}
 }
